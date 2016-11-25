@@ -1,0 +1,164 @@
+
+<html>
+<head>
+
+<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+
+
+
+<title>sketch 11</title>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript" src="script.js"></script>
+<script type="text/javascript" src="inpaint.js"></script>
+<script type="text/javascript" src="heapqueue.js"></script> 
+<script type="text/javascript" src="sketch.js"></script>
+
+
+
+
+    
+
+<link href="style.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+    
+</head>
+
+
+
+<body>
+	
+	
+	<canvas id="SketchPad" width="800" height="500" style="background:no-repeat center center; display: block; "></canvas>
+
+<input type=file accept="image/*" id="file-input"  onchange="readURL(this);" >
+<button class=combine>combine</button>
+<canvas id="combined"   width="800" height="500" ></canvas>	
+
+<!-- 		<img src="one.jpg" > -->
+	
+
+
+<script>
+	
+	
+	
+//INPAINT.JS 	
+function blah(merp){
+	var c = document.createElement('canvas')
+	c.width = merp.width;
+	c.height = merp.height;
+	document.body.appendChild(c)
+	var ctx = c.getContext('2d');
+	ctx.drawImage(merp, 0, 0)
+	var blah = ctx.getImageData(0, 0, c.width, c.height);
+
+	var width = blah.width, height = blah.height;
+	var mask_u8 = new Uint8Array(width * height);
+	for(var i = 0; i < blah.data.length / 4; i++){
+		var Y = .299 * blah.data[4 * i] + .587 * blah.data[4 * i + 1] +  .114 * blah.data[4 * i + 2];
+
+		if(Y > 230){
+			var rad = 5
+
+			for(var dx = -rad; dx <= rad; dx++){
+				for(var dy = -rad; dy <= rad; dy++){
+					if(dx * dx + dy * dy <= rad * rad){
+						mask_u8[i + dx + dy * width] = 1;
+					}
+				}
+			}
+/*
+			blah.data[i * 4] = 0
+
+			blah.data[i * 4 + 1] = 0
+			 blah.data[i * 4 + 2] = 0
+*/
+
+		}
+	}
+	for(var channel = 0; channel < 3; channel++){
+		var img_u8 = new Uint8Array(width * height)
+		for(var n = 0; n < blah.data.length; n+=4){
+			img_u8[n / 4] = blah.data[n + channel]
+		}
+		InpaintTelea(width, height, img_u8, mask_u8)
+		for(var i = 0; i < img_u8.length; i++){
+			blah.data[4 * i + channel] = img_u8[i]
+		}	
+	}
+	
+	
+
+	
+	// render result back to canvas
+	for(var i = 0; i < img_u8.length; i++){
+		blah.data[4 * i + 3] = 255;
+	}
+    
+    ctx.putImageData(blah, 0, 0);
+
+}
+
+
+
+
+
+
+
+
+
+
+//SKETCH.JS 
+
+
+	var img
+$('#SketchPad').sketch();
+
+$('#file-input').change(function(e) {
+    drawInMiddle(e.originalEvent.target.files[0])
+
+})
+$(".combine").click(function() {
+    var canvas = $('#combined')[0]
+    var ctx = canvas.getContext('2d')
+
+    ctx.drawImage(img, canvas.width / 2 - img.width / 2,
+        canvas.height / 2 - img.height / 2
+    )
+    ctx.drawImage($('#SketchPad')[0],0,0)
+
+
+
+})
+
+function drawInMiddle(file) {
+    var canvas = $('#SketchPad')[0]
+    var ctx = canvas.getContext('2d')
+    img = new Image;
+    img.src = URL.createObjectURL(file)
+    var bgi = "url(" + img.src + ")"
+    $("#SketchPad").css("background-image", bgi);
+
+
+}
+</script>
+
+
+
+
+
+
+			 
+
+
+
+</body>
+
+</html>
