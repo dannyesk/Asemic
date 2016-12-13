@@ -1,0 +1,307 @@
+
+<html>
+<head>
+
+<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+
+
+
+<title>sketch 11</title>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript" src="script.js"></script>
+<script type="text/javascript" src="inpaint.js"></script>
+<script type="text/javascript" src="heapqueue.js"></script> 
+<script type="text/javascript" src="sketch.js"></script>
+<script type="text/javascript" src="load-image-orientation.js"></script>
+<script type="text/javascript" src="load-image-orientation.js"></script>
+
+
+<script src="jquery.canvasResize.js"></script> 
+<script src="canvasResize.js"></script> 
+
+    
+
+<link href="style.css" rel="stylesheet" type="text/css" />
+
+<style>
+
+</style>
+
+
+
+
+
+    
+</head>
+
+
+
+<body>
+	
+	
+ 	<div id="border">
+	 	
+	 	
+	 	
+	 	
+			<div class="back">	
+						<img src="rainbow.png" alt="rainbow" width="30%" height="100%" />
+			</div>  
+	 
+	 
+			<div class="ring">	
+				<img src="5.gif" alt="5" width="" height="" />
+			</div>
+			
+			<div class="ring2">	
+				<img src="5.gif" alt="5" width="" height="" />
+			</div>
+			
+			
+			<div class="ring3">	
+				<img src="5.gif" alt="5" width="" height="" />
+			</div>
+
+	 	
+	 	
+			<div class="ring5">	
+				<img src="5.gif" alt="5" width="" height="" />
+			</div>
+
+	 					
+			<div class="sketches">	
+			
+	
+				<canvas id="SketchPad" width="900" height="800%" style=" margin-top: 0vw; margin:0 auto; background:no-repeat center; display: block; "></canvas>
+
+				<input name="photo"  style=" font-size: 3vw; margin-top: 0%; border-bottom: 2px solid black;"  type=file accept="image/*" id="file-input"  class="inputfile" onchange="readURL(this); "   
+					   data-multiple-caption="{count} files selected" multiple>
+					   
+					   
+				<label for="file-input">Take Photo</label>
+				<button style="margin-bottom:30px;" class="combine">ErasE</button>
+
+
+				<canvas id="combined" width="900" height="800%" style="  display:none; margin:0 auto;  position: fixed;"></canvas>	
+			</div>
+	</div>
+ 	
+
+<script>
+	
+	
+/*
+document.getElementById('file-input').onchange = function (e) {
+    loadImage(
+        e.target.files[0],
+        function (img) {
+            document.body.appendChild(img);
+        },
+        {orientation: true} // Options
+    );
+};
+*/
+
+	
+//canvas 	
+	
+
+	
+	
+	// SHOW AS AN IMAGE
+// =================================================
+
+//SKETCH.JS 
+
+
+
+	var img
+$('#SketchPad').sketch({defaultColor: "#fff",  defaultSize: 50});
+
+$('#file-input').change(function(e) {
+    drawInMiddle(e.originalEvent.target.files[0])
+    var CanvasExifOrientation = require('canvas-exif-orientation');
+})
+$(".combine").click(function() {
+	
+
+	$('#SketchPad').fadeOut(1000);
+	$('#combined').fadeOut(1000);
+	$('#file-input').fadeOut(1000);
+	$('button').fadeOut(1000);
+	$(".sketches").fadeOut(1000);
+	
+	
+
+    var canvas = $('#combined')[0]
+    
+
+    
+
+
+
+    var MAX_WIDTH = 900;
+		var MAX_HEIGHT = 1600;
+		var width = img.width;
+		var height = img.height;
+		 
+		if (width > height) {
+		  if (width > MAX_WIDTH) {
+		    height *= MAX_WIDTH / width;
+		    width = MAX_WIDTH;
+		  }
+		} else {
+		  if (height > MAX_HEIGHT) {
+		    width *= MAX_HEIGHT / height;
+		    height = MAX_HEIGHT;
+		  }
+		}
+		canvas.width = width;
+		canvas.height = height;
+    
+    var ctx = canvas.getContext('2d')
+    
+
+
+    ctx.drawImage(img, 0, 0, width, height
+    )
+    
+    
+    ctx.drawImage($('#SketchPad')[0],0,0)
+
+    blah(canvas)
+    
+    
+
+    
+   
+
+})
+
+
+   
+
+function drawInMiddle(file) {
+    var canvas = $('#SketchPad')[0]
+    var ctx = canvas.getContext('2d')
+    img = new Image;
+    img.src = URL.createObjectURL(file)
+    var bgi = "url(" + img.src + ")"
+    $("#SketchPad").css({"background-image": bgi ,  "background-size": "900px auto",
+    "background-repeat": "no-repeat"});
+ 
+ 
+
+ 
+
+
+}
+
+
+
+
+	
+	
+//INPAINT.JS 	
+function blah(merp){
+	
+	
+	
+	var c = document.createElement('canvas')
+	c.width = merp.width;
+	c.height = merp.height;
+	document.body.appendChild(c)
+	var ctx = c.getContext('2d');
+	ctx.drawImage(merp, 0, 0)
+	var blah = ctx.getImageData(0, 0, c.width, c.height);
+
+	var width = blah.width, height = blah.height;
+	var mask_u8 = new Uint8Array(width * height);
+	for(var i = 0; i < blah.data.length / 4; i++){
+		var Y = .299 * blah.data[4 * i] + .587 * blah.data[4 * i + 1] +  .114 * blah.data[4 * i + 2];
+
+		if(Y > 230){
+			var rad = 5
+
+			for(var dx = -rad; dx <= rad; dx++){
+				for(var dy = -rad; dy <= rad; dy++){
+					if(dx * dx + dy * dy <= rad * rad){
+						mask_u8[i + dx + dy * width] = 1;
+					}
+				}
+			}
+/*
+			blah.data[i * 4] = 0
+
+			blah.data[i * 4 + 1] = 0
+			 blah.data[i * 4 + 2] = 0
+*/
+
+		}
+	}
+	
+	
+	
+	for(var channel = 0; channel < 3; channel++){
+		var img_u8 = new Uint8Array(width * height)
+		for(var n = 0; n < blah.data.length; n+=4){
+			img_u8[n / 4] = blah.data[n + channel]
+		}
+		InpaintTelea(width, height, img_u8, mask_u8)
+		for(var i = 0; i < img_u8.length; i++){
+			blah.data[4 * i + channel] = img_u8[i]
+		}	
+	}
+	
+	
+	
+
+	
+	// render result back to canvas
+	for(var i = 0; i < img_u8.length; i++){
+		blah.data[4 * i + 3] = 255;
+	}
+    
+    
+    
+    ctx.putImageData(blah, 0, 0);
+    
+    
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//fix rotation
+
+
+
+
+
+
+</script>
+
+
+
+
+
+
+
+			 
+
+
+
+</body>
+
+</html>
